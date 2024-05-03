@@ -2,6 +2,8 @@
 import { config } from "dotenv";
 config()
 export const{
-    MONGODB_URI,
+    MONGODB_USER,
+MONGODB_PASSWORD,
+MONGODB_DB,
     JWT_SECRET
 }=process.env
