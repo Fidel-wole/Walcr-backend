@@ -2,8 +2,10 @@
 import { Body, Controller, Post, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { signUpDto } from './dto/signup.dto';
-import { hashPassword } from 'src/utils/functions';
+import { signInDto } from './dto/signin.dto';
+import { comparePasswords, hashPassword } from 'src/utils/functions';
 import { JwtService } from '@nestjs/jwt';
+import { sendOTp } from 'src/utils/functions';
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -17,8 +19,9 @@ export class AuthController {
       if (findUser) {
         throw new UnauthorizedException('User already exists');
       } else {
-        //signUpDto.password = await hashPassword(signUpDto.password);
+        signUpDto.password = await hashPassword(signUpDto.password);
       }
+      await sendOTp(signUpDto.phone_number)
       const user = await this.authService.registerUser(signUpDto);
       const token = this.jwtService.sign({ id: user._id });
       return {
@@ -29,4 +32,29 @@ export class AuthController {
       throw new Error(err);
     }
   }
+
+  @Post('login')
+  async signIn(@Body() signInDto: signInDto) {
+    try {
+      const user = await this.authService.findUser(signInDto.email);
+      if (user) {
+        const isPasswordValid = await comparePasswords(
+          signInDto.password,
+          user.password,
+        );
+        if (isPasswordValid) {
+          const token = this.jwtService.sign({ id: user._id });
+          return {
+            message: 'User logged in successfully',
+            data: token,
+          };
+        }
+      }else{
+        throw new Error("User not found")
+      }
+    } catch (err: any) {
+      throw new Error(err);
+    }
+  }
+
 }
