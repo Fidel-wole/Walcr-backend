@@ -7,6 +7,8 @@ import { PassportModule } from '@nestjs/passport';
 import { UserSchema } from './schema/user.schema';
 import { JwtModule } from '@nestjs/jwt';
 import { JWT_SECRET } from '../config/env';
+import { JwtStrategy } from './jwt.strategy';
+import { GoogleStrategy } from './google.strategy';
 @Module({
   imports:[ PassportModule.register({ defaultStrategy: 'jwt' }),
   MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
@@ -15,7 +17,8 @@ import { JWT_SECRET } from '../config/env';
     secret: JWT_SECRET,
     signOptions: { expiresIn: '2h' },
   }),],
-  providers: [AuthService],
-  controllers: [AuthController]
+  providers: [AuthService, JwtStrategy, GoogleStrategy],
+  controllers: [AuthController],
+  exports: [JwtStrategy, PassportModule],
 })
 export class AuthModule {}

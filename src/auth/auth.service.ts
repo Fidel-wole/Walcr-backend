@@ -1,10 +1,9 @@
 /* eslint-disable prettier/prettier */
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from './schema/user.schema';
-import { comparePasswords } from 'src/utils/functions';
 
 @Injectable()
 export class AuthService {
@@ -20,7 +19,13 @@ export class AuthService {
       throw new Error(err);
     }
   }
-
+  async findUserByNumber(phone_number: number) {
+    try {
+      return await this.userModel.findOne({ phone_number: phone_number });
+    } catch (err: any) {
+      throw new Error(err);
+    }
+  }
   async registerUser(data: any) {
     try {
       return await this.userModel.create(data);
@@ -29,30 +34,4 @@ export class AuthService {
     }
   }
 
-  async login(signInDto) {
-    try{
-    const { email, password } = signInDto;
-    const user = await this.userModel.findOne({ email, password})
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
-    }else{
-        const isPasswordValid = await comparePasswords(
-            password,
-            user.password
-          );
-          if (isPasswordValid) {
-            console.log(user.id);
-            const token = this.jwtService.sign({ id: user._id });
-            return {
-              message:"User logged in successfully",
-              data:token
-            };
-    }
-}
-
-  }catch(err:any){
-    throw new Error(err)
-}
-
-}
 }

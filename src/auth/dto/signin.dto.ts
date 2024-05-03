@@ -5,3 +5,8 @@ export class signInDto {
      email: string;
  password: string;
 }
+
+export class signInDtoWithNumber{
+    phone_number:number;
+    password:string;
+}
