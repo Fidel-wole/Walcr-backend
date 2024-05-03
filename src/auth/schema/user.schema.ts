@@ -18,6 +18,10 @@ export class User {
   @Prop({default:null })
   address: string;
 
+  
+  @Prop({default:null })
+  picture: string;
+
   @Prop()
   password: string;
 
@@ -36,6 +40,7 @@ export interface User extends mongoose.Document {
   email: string;
   phone_number: number;
   address: string;
+  picture:string;
   password: string;
   otp_verification_code: number;
   isEmailConfirmed: boolean;

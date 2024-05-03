@@ -23,7 +23,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       email: emails[0].value,
       name:`${name.givenName} ${name.familyName}`,
       picture: photos[0].value,
-      isEmailVerfied: true,
+      isEmailConfirmed: true,
     };
     const user = await this.authService.findUser(userData.email);
     if(user){
