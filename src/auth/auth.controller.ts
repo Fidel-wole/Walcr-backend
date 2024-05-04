@@ -1,6 +1,19 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable prettier/prettier */
-import { Body, Controller, Get, HttpStatus, Post, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  HttpStatus,
+  InternalServerErrorException,
+  NotFoundException,
+  Post,
+  Req,
+  Res,
+  UnauthorizedException,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { signUpDto } from './dto/signup.dto';
 import { signInDto } from './dto/signin.dto';
@@ -43,23 +56,36 @@ export class AuthController {
   async signIn(@Body() signInDto: signInDto) {
     try {
       const user = await this.authService.findUser(signInDto.email);
-      if (user) {
-        const isPasswordValid = await comparePasswords(
-          signInDto.password,
-          user.password,
-        );
-        if (isPasswordValid) {
-          const token = this.jwtService.sign({ id: user._id });
-          return {
-            message: 'User logged in successfully',
-            data: token,
-          };
-        }
-      } else {
-        throw new Error('User not found');
+      if (!user) {
+        // If user not found
+        throw new NotFoundException('User not found');
       }
+
+      const isPasswordValid = await comparePasswords(
+        signInDto.password,
+        user.password,
+      );
+
+      if (!isPasswordValid) {
+        // If password is incorrect
+        throw new UnauthorizedException('Incorrect password');
+      }
+
+      const token = this.jwtService.sign({ id: user._id });
+      return {
+        message: 'User logged in successfully',
+        data: token,
+      };
     } catch (err: any) {
-      throw new Error(err);
+      if (
+        err instanceof NotFoundException ||
+        err instanceof UnauthorizedException
+      ) {
+        throw err;
+      }
+      throw new InternalServerErrorException(
+        'An unexpected error occurred during login.',
+      );
     }
   }
   @Post('login/phone-number')
@@ -68,23 +94,37 @@ export class AuthController {
       const user = await this.authService.findUserByNumber(
         signInDtoWithNumber.phone_number,
       );
-      if (user) {
-        const isPasswordValid = await comparePasswords(
-          signInDtoWithNumber.password,
-          user.password,
-        );
-        if (isPasswordValid) {
-          const token = this.jwtService.sign({ id: user._id });
-          return {
-            message: 'User logged in successfully',
-            data: token,
-          };
-        }
-      } else {
-        throw new Error('User not found');
+
+      if (!user) {
+        // If user not found
+        throw new NotFoundException('User not found');
       }
+
+      const isPasswordValid = await comparePasswords(
+        signInDtoWithNumber.password,
+        user.password,
+      );
+
+      if (!isPasswordValid) {
+        // If password is incorrect
+        throw new UnauthorizedException('Incorrect password');
+      }
+
+      const token = this.jwtService.sign({ id: user._id });
+      return {
+        message: 'User logged in successfully',
+        data: token,
+      };
     } catch (err: any) {
-      throw new Error(err);
+      if (
+        err instanceof NotFoundException ||
+        err instanceof UnauthorizedException
+      ) {
+        throw err;
+      }
+      throw new InternalServerErrorException(
+        'An unexpected error occurred during login.',
+      );
     }
   }
 
@@ -101,9 +141,9 @@ export class AuthController {
     const user = req.user;
     if (!user) {
       // Authentication failed
-      throw new UnauthorizedException("Authentication failed")
+      throw new UnauthorizedException('Authentication failed');
     }
-    const token = user.token
-    res.redirect("https://walcr.com")
-}
+    const token = user.token;
+    res.redirect('https://walcr.com');
+  }
 }

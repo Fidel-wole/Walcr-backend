@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -9,8 +9,9 @@ import { JwtModule } from '@nestjs/jwt';
 import { JWT_SECRET } from '../config/env';
 import { JwtStrategy } from './jwt.strategy';
 import { GoogleStrategy } from './google.strategy';
+import { WalletModule } from 'src/wallet/wallet.module';
 @Module({
-  imports:[ PassportModule.register({ defaultStrategy: 'jwt' }),
+  imports:[forwardRef(()=>WalletModule), PassportModule.register({ defaultStrategy: 'jwt' }),
   MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
   JwtModule.register({
     global: true,
