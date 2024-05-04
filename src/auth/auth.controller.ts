@@ -71,7 +71,7 @@ export class AuthController {
         throw new UnauthorizedException('Incorrect password');
       }
 
-      const token = this.jwtService.sign({ id: user._id });
+      const token = this.jwtService.sign({ id: user._id, email: user.email });
       return {
         message: 'User logged in successfully',
         data: token,
@@ -110,7 +110,7 @@ export class AuthController {
         throw new UnauthorizedException('Incorrect password');
       }
 
-      const token = this.jwtService.sign({ id: user._id });
+      const token = this.jwtService.sign({ id: user._id, email: user.email });
       return {
         message: 'User logged in successfully',
         data: token,

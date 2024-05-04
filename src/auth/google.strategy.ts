@@ -27,11 +27,13 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     };
     const user = await this.authService.findUser(userData.email);
     if(user){
-        const token = this.jwtService.sign({ id: user._id });
+        const token = this.jwtService.sign({ id: user._id, email:user.email });
         profile.token = token;
         return done(null, profile);
     }else{
-        await this.authService.registerUser(userData)
+       const newUser = await this.authService.registerUser(userData);
+        const token = this.jwtService.sign({ id: newUser._id, email: newUser.email });
+        profile.token = token;
         return done(null, profile);
     }
 
