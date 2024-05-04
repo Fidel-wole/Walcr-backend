@@ -37,4 +37,12 @@ export class AuthService {
       throw new Error(err);
     }
   }
+
+  async getUser(userId: string) {
+    try {
+      return await this.userModel.findById(userId);
+    } catch (err: any) {
+      throw new Error(err);
+    }
+  }
 }

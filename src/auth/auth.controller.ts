@@ -146,4 +146,30 @@ export class AuthController {
     const token = user.token;
     res.redirect('https://walcr.com');
   }
+
+  @Get('user')
+  @UseGuards(AuthGuard())
+  async getUser(@Req() req){
+  const userId = req.user.id;
+  try{
+  const user = await this.authService.getUser(userId);
+  if(!user){
+    throw new NotFoundException('User not found');
+  }
+  return ({
+    message:"User fetched sucessfully",
+    data:user
+  })
+  
+}catch (err: any) {
+  if (
+    err instanceof NotFoundException
+  ) {
+    throw err;
+  }
+  throw new InternalServerErrorException(
+    'An unexpected error occurred during login.',
+  );
+}
+}
 }
