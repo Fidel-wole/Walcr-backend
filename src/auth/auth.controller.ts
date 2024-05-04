@@ -157,7 +157,7 @@ export class AuthController {
     throw new NotFoundException('User not found');
   }
   return ({
-    message:"User fetched sucessfully",
+    message:"User data fetched sucessfully",
     data:user
   })
   
