@@ -42,7 +42,7 @@ export const UserSchema = SchemaFactory.createForClass(User);
 export interface User extends mongoose.Document {
   name: string;
   email: string;
-  phone_number: number;
+  phone_number: string;
   address: string;
   picture:string;
   password: string;
