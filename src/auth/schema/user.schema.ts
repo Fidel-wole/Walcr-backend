@@ -15,7 +15,7 @@ export class User {
   @Prop({ unique: true,
     validate: {
       validator: (value: string) => /^\+?[0-9]{10,15}$/.test(value), // Validate using regex
-      message: (props) => `${props.value} is not a valid phone number.`,
+      message: (props) => `${props.value} is not a valid phone number.`,},
     default:null})
   phone_number: string;
 
