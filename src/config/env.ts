@@ -9,5 +9,5 @@ export const {
   AUTH_CLIENT_ID,
   AUTH_CLIENT_SECRET,
   BASE_URL,
-  PAYSTACK_SECRET_KEY
+  STRIPE_SECRET_KEY
 } = process.env;

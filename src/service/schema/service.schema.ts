@@ -6,19 +6,14 @@ import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
   timestamps: true,
 })
 // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
-export class PaymentRefrence {
+export class Wallet {
   @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'User' })
   userId: string;
-  @Prop({required: true, default: 0 })
-  amount: number;
-
-  @Prop({required: true, default: 0 })
-  paymentRef: string;
-  
+  @Prop({ default: 0 })
+  balance: number;
 }
-export const PaymentSchema = SchemaFactory.createForClass(PaymentRefrence);
-export interface PaymentSchema extends mongoose.Document {
+export const WalletSchema = SchemaFactory.createForClass(Wallet);
+export interface Wallet extends mongoose.Document {
   userId: string;
-  amount: number;
-  paymentRef: string;
+  balance: number;
 }

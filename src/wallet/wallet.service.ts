@@ -1,17 +1,23 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable prettier/prettier */
-import { Injectable, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Wallet } from './schema/wallet.schema';
 import { PaymentSchema } from './schema/paymentRefrence.schema';
-import { PAYSTACK_SECRET_KEY } from 'src/config/env';
-const paystack = require("paystack")(PAYSTACK_SECRET_KEY);
+import { STRIPE_SECRET_KEY } from 'src/config/env';
+const stripe = require('stripe')(STRIPE_SECRET_KEY);
 
 @Injectable()
 export class WalletService {
   constructor(
     @InjectModel('Wallet') private walletModel: Model<Wallet>,
-    @InjectModel('PaymentReference') private paymentReferenceModel: Model<PaymentSchema>,
+    @InjectModel('PaymentReference')
+    private paymentReferenceModel: Model<PaymentSchema>,
   ) {}
 
   async createWallet(userId: string): Promise<Wallet> {
@@ -24,51 +30,71 @@ export class WalletService {
     return wallet ? wallet.balance : 0;
   }
 
-  async deposit(email: string, userId: string, amount: number, paymentRef: string) {
+  async createPaymentIntent(amount: number) {
     try {
       if (typeof amount !== 'number' || amount <= 0) {
-        throw new BadRequestException("Invalid amount");
-      }
-
-      if (!email || !email.includes("@")) {
-        throw new BadRequestException("Invalid email");
-      }
-
-      if (typeof userId !== 'string' || userId === '') {
-        console.log(userId)
-        throw new BadRequestException("User ID is required");
-      }
-
-      if (!paymentRef) {
-        throw new BadRequestException("Payment reference is required");
+        throw new BadRequestException('Invalid amount');
       }
 
       // Initialize transaction with Paystack
-      const paymentResponse = await paystack.transaction.initialize({
-        amount: amount * 100, // Paystack requires amounts in kobo
-        email: email,
-        reference: paymentRef,
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount * 100, // Amount in cents
+        currency: 'usd',
+        payment_method_types: ['card'],
       });
 
-      // Save the payment reference in the database
-      const paymentReference = await this.paymentReferenceModel.create({
-        userId,
-        amount,
-        paymentRef,
-      });
-
-      if (!paymentReference) {
-        throw new InternalServerErrorException("Failed to save payment reference");
-      }
-
-      return paymentResponse;
+      return paymentIntent;
     } catch (error) {
-      console.error("Error in deposit:", error); // Proper logging
-      if (error instanceof BadRequestException || error instanceof InternalServerErrorException) {
+      console.error('Error in deposit:', error); // Proper logging
+      if (
+        error instanceof BadRequestException ||
+        error instanceof InternalServerErrorException
+      ) {
         throw error; // Forward the specific exception
       }
 
-      throw new InternalServerErrorException("An error occurred during payment processing");
+      throw new InternalServerErrorException(
+        'An error occurred during payment processing',
+      );
     }
+  }
+
+  async updateWallet(paymentIntentId) {
+    try {
+      if (!paymentIntentId) {
+        throw new BadRequestException('PaymentIntent ID is required');
+      }
+
+      const paymentIntent =
+        await stripe.paymentIntents.retrieve(paymentIntentId);
+
+      if (!paymentIntent) {
+        throw new InternalServerErrorException('Payment Intent not found');
+      }
+
+      // Ensure the PaymentIntent status is "succeeded"
+      if (paymentIntent.status !== 'succeeded') {
+        throw new BadRequestException('Payment not successful');
+      }
+
+      return paymentIntent;
+    } catch (error) {
+      if (error.type === 'StripeInvalidRequestError') {
+        throw new BadRequestException('Invalid PaymentIntent ID');
+      }
+
+      console.error('Error in updateWallet:', error);
+      throw new InternalServerErrorException(
+        'An error occurred during payment processing',
+      );
+    }
+  }
+
+  async updateWalletBalance(userId, amount) {
+    let wallet = await this.walletModel.findById({ userId: userId });
+    if (wallet) {
+      wallet.balance += amount;
+    }
+    return await wallet.save();
   }
 }
