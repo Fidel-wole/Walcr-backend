@@ -21,7 +21,7 @@ export class AuthService {
       throw new Error(err);
     }
   }
-  async findUserByNumber(phone_number: number) {
+  async findUserByNumber(phone_number: string) {
     try {
       return await this.userModel.findOne({ phone_number: phone_number });
     } catch (err: any) {

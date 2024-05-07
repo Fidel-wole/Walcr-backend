@@ -7,6 +7,6 @@ export class signInDto {
 }
 
 export class signInDtoWithNumber{
-    phone_number:number;
+    phone_number: string;
     password:string;
 }

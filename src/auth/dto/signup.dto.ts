@@ -4,7 +4,7 @@ import { isNotEmpty, isString } from 'class-validator';
 export class signUpDto {  
     name: string;
     email: string;
-    phone_number: number;
+    phone_number: string;
     address: string;
     password: string;
 }

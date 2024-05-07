@@ -14,7 +14,7 @@ export async function comparePasswords(
   return bcrypt.compare(plainPassword, hashedPassword);
 }
 
-export async function sendOTp(phone_number: number) {
+export async function sendOTp(phone_number: string) {
   const data = {
     api_key: 'TLwEnRho8z70m1G3AIFUUbUmWHFSZTQfM9GihtZ4y1JYEHWYTFJaTo9TPiFUmf',
     message_type: 'NUMERIC',
