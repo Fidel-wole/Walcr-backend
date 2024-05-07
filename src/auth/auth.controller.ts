@@ -48,7 +48,15 @@ export class AuthController {
         data: token,
       };
     } catch (err: any) {
-      throw new Error(err);
+      if (
+        err instanceof NotFoundException ||
+        err instanceof UnauthorizedException
+      ) {
+        throw err;
+      }
+      throw new InternalServerErrorException(
+        'An unexpected error occurred during login.',
+      );
     }
   }
 
