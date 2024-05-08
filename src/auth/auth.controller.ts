@@ -24,6 +24,7 @@ import { JwtService } from '@nestjs/jwt';
 import { sendOTp } from 'src/utils/functions';
 import { AuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
+import dispatcher from 'src/utils/dispatcher';
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -177,6 +178,20 @@ export class AuthController {
   }
   throw new InternalServerErrorException(
     'An unexpected error occurred during login.',
+  );
+}
+}
+
+@Post('/update-user')
+@UseGuards(AuthGuard())
+async updateUserProfile(@Req() req, @Res() res, @Body() signinDto:signInDto){
+const userId = req.user.id;
+  try{
+ const update = await this.authService.editProfile(userId, signinDto);
+dispatcher.DispatchSuccessMessage(res, "Profile updated sucessfully", update)
+}catch(err){
+  throw new InternalServerErrorException(
+    'An unexpected error occurred during profile update.',
   );
 }
 }

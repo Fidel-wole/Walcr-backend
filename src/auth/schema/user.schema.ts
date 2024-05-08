@@ -37,6 +37,9 @@ export class User {
 
   @Prop()
   email_verification_token: string;
+
+  @Prop({default:false})
+  isTaskWalker:string
 }
 export const UserSchema = SchemaFactory.createForClass(User);
 export interface User extends mongoose.Document {
@@ -49,4 +52,5 @@ export interface User extends mongoose.Document {
   otp_verification_code: number;
   isEmailConfirmed: boolean;
   email_verification_token: string;
+  isTaskWalker:string;
 }

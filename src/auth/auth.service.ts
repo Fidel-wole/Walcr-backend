@@ -38,9 +38,29 @@ export class AuthService {
     }
   }
 
+  async inputPhoneNumber(userId: any, phone_number: string) {
+    try {
+      const user = await this.userModel.findById(userId);
+      user.phone_number = phone_number;
+      user.save();
+    } catch (err) {
+      throw err;
+    }
+  }
+
   async getUser(userId: string) {
     try {
       return await this.userModel.findById(userId);
+    } catch (err: any) {
+      throw new Error(err);
+    }
+  }
+
+  async editProfile(userId, data) {
+    try {
+      return await this.userModel.findByIdAndUpdate(userId, data, {
+        new: true,
+      });
     } catch (err: any) {
       throw new Error(err);
     }

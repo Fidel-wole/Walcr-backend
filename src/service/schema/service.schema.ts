@@ -6,14 +6,31 @@ import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
   timestamps: true,
 })
 // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
-export class Wallet {
+export class Service {
   @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'User' })
-  userId: string;
-  @Prop({ default: 0 })
-  balance: number;
+  userId:string;
+  @Prop({ required: true})
+  service_type: string;
+  @Prop({ required: true})
+  delivery_type: string;
+  @Prop({ required: true})
+  pickup_address:string;
+  @Prop({ required: true})
+  destination_address: string;
+  @Prop({ required: true})
+  delivery_ride: string;
+  @Prop({ required: true})
+  rider: string;
+  @Prop({enum: ['In Transit', 'Delivered'], default:"In Transit"})
+  status:string
 }
-export const WalletSchema = SchemaFactory.createForClass(Wallet);
-export interface Wallet extends mongoose.Document {
+export const ServiceSchema = SchemaFactory.createForClass(Service);
+export interface Service extends mongoose.Document {
   userId: string;
-  balance: number;
+  delivery_type: string;
+  service_type: string;
+  pickup_address:string;
+  destination_address: string;
+  delivery_ride: string;
+  rider: string
 }
