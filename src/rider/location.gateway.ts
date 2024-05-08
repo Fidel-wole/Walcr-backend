@@ -25,7 +25,7 @@ export class LocationGateway implements OnGatewayConnection, OnGatewayDisconnect
   @SubscribeMessage('updateLocation')
   async handleLocationUpdate(@MessageBody() data: { riderId: string; longitude: number; latitude: number }) {
     // Update the rider's location using a service
-    //await this.ridersService.updateRiderLocation(data.riderId, data.longitude, data.latitude);
+    await this.ridersService.updateRiderLocation(data.riderId, data.longitude, data.latitude);
 
     // Broadcast the updated location to all connected clients
     this.server.emit('riderLocationUpdate', {

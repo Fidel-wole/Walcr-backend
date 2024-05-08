@@ -7,7 +7,10 @@ import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
 })
 export class User {
   @Prop({ required: true })
-  name: string;
+  firstname: string;
+
+  @Prop({ required: true })
+  lastname: string;
 
   @Prop({ required: true, unique: true })
   email: string;
@@ -43,7 +46,8 @@ export class User {
 }
 export const UserSchema = SchemaFactory.createForClass(User);
 export interface User extends mongoose.Document {
-  name: string;
+  firstname: string;
+  lastname:string;
   email: string;
   phone_number: string;
   address: string;

@@ -2,7 +2,8 @@
 /* eslint-disable prettier/prettier */
 import { isNotEmpty, isString } from 'class-validator';
 export class signUpDto {  
-    name: string;
+    firstname: string;
+    lastname:string;
     email: string;
     phone_number: string;
     address: string;
