@@ -56,7 +56,7 @@ export class AuthController {
         throw err;
       }
       throw new InternalServerErrorException(
-        'An unexpected error occurred during login.',
+        err
       );
     }
   }

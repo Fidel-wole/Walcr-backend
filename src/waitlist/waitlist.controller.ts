@@ -19,8 +19,11 @@ export class WaitlistController {
       } while (existingRecord);
     try {
         const user = await this.waitlistService.findUserEmail(waitlistDto.email);
+        const ip_address = await this.waitlistService.findUserIpAddress(waitlistDto.ip_address)
         if(user){
             return new UnauthorizedException("Email has already been submitted")
+        }else if(ip_address){
+          return new UnauthorizedException("Ip address already exist")
         }
         waitlistDto.referral_code = uuid
       const waitlist = await this.waitlistService.addWaitlist(waitlistDto); // Call the service

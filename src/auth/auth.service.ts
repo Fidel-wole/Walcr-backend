@@ -18,7 +18,7 @@ export class AuthService {
     try {
       return await this.userModel.findOne({ email: email });
     } catch (err: any) {
-      throw new Error(err);
+      throw err;
     }
   }
   async findUserByNumber(phone_number: string) {
@@ -34,7 +34,7 @@ export class AuthService {
       await this.walletService.createWallet(user._id);
       return user;
     } catch (err: any) {
-      throw new Error(err);
+      throw err;
     }
   }
 

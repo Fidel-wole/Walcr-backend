@@ -9,7 +9,7 @@ import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
 export class Waitlist {
   @Prop({ required: true, unique:true })
   email: string;
-  @Prop({ required:true})
+  @Prop({ required:true, unique:true})
   ip_address: string;
   @Prop({ required: true})
   location: string;

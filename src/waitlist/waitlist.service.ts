@@ -25,6 +25,15 @@ export class WaitlistService {
       throw err;
     }
   }
+
+  async findUserIpAddress(ip_address) {
+    try {
+      return await this.waitlistModel.findOne({ ip_address });
+    } catch (err) {
+      throw err;
+    }
+  }
+  
   async findReferralCode(code: any) {
     try {
       return await this.waitlistModel.findOne({ referral_code: code });
