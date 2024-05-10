@@ -17,6 +17,13 @@ export class Waitlist {
   referral_code: string;
 }
 export const WaitlistSchema = SchemaFactory.createForClass(Waitlist);
+
+// Add additional indexes if needed
+WaitlistSchema.index({ email: 1 }); // Index on email
+WaitlistSchema.index({ ip_address: 1 }); // Index on ip_address
+
+// Optionally, add a composite index
+WaitlistSchema.index({ email: 1, ip_address: 1 });
 export interface Waitlist extends mongoose.Document {
   userId: string;
   balance: number;

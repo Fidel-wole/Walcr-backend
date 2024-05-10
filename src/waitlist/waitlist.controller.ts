@@ -10,42 +10,49 @@ export class WaitlistController {
 
   @Post('/') // POST request to add to the waitlist
   async addWaitlist(@Res() res, @Body() waitlistDto: WaitlistDto) {
-    let uuid: string;
+      let uuid: string;
       let existingRecord;
-
+  
+      // Generate unique UUID
       do {
-        uuid = formatUUID(uuidv4().substring(0, 9));
-        existingRecord = await this.waitlistService.findReferralCode(uuid)
+          uuid = uuidv4().substring(0, 9);
+          existingRecord = await this.waitlistService.findReferralCode(uuid);
       } while (existingRecord);
-    try {
-        const user = await this.waitlistService.findUserEmail(waitlistDto.email);
-        const ip_address = await this.waitlistService.findUserIpAddress(waitlistDto.ip_address)
-        if(user){
-            return new UnauthorizedException("Email has already been submitted")
-        }else if(ip_address){
-          return new UnauthorizedException("Ip address already exist")
-        }
-        waitlistDto.referral_code = uuid
-      const waitlist = await this.waitlistService.addWaitlist(waitlistDto); // Call the service
-    
-      return {
-        message: 'Waitlist added successfully',
-        referralCode: waitlist.referral_code,
-      };
-      res.redirect("https://walcr.com/welcome")
-    } catch (err) {
-        if (
-            err instanceof UnauthorizedException
-          ) {
-            throw err;
+  
+      try {
+          // Check if email or IP address already exists
+          const user = await this.waitlistService.findUserEmail(waitlistDto.email);
+          const ip_address = await this.waitlistService.findUserIpAddress(waitlistDto.ip_address);
+          
+          if (user) {
+              // Send response with 401 status
+              return res.status(HttpStatus.UNAUTHORIZED).json({ message: "Email has already been submitted" });
+          } else if (ip_address) {
+              // Send response with 401 status
+              return res.status(HttpStatus.UNAUTHORIZED).json({ message: "IP address already exists" });
           }
-      throw new HttpException(
-        { message: 'Failed to add to waitlist', error: err.message },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+  
+          // Add to the waitlist
+          waitlistDto.referral_code = uuid;
+          const waitlist = await this.waitlistService.addWaitlist(waitlistDto);
+  
+          // Send success response
+          return res.status(HttpStatus.OK).json({
+              message: 'Waitlist added successfully',
+              referralCode: waitlist.referral_code,
+          });
+  
+      } catch (err) {
+          console.error('Error adding to waitlist:', err);
+  
+          // Send error response with 500 status
+          return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+              message: 'Failed to add to waitlist',
+              error: err.message,
+          });
+      }
   }
-
+  
   @Get('/counts')
  async getWaitlistCount(){
 try{
