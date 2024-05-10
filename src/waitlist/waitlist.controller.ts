@@ -32,7 +32,7 @@ export class WaitlistController {
         message: 'Waitlist added successfully',
         referralCode: waitlist.referral_code,
       };
-      res.redirect("https://walcr.com")
+      res.redirect("https://walcr.com/welcome")
     } catch (err) {
         if (
             err instanceof UnauthorizedException
