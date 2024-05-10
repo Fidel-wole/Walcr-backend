@@ -12,31 +12,34 @@ export class TaskWalkerController {
 
     @Post('/register')
     @UseGuards(AuthGuard())
-    async registerTaskWalker(@Req() req, @Res() res, @Body() taskWalkerDto:TaskWalkerDto){
-     const userId = req.user.id;
-     taskWalkerDto.userId = userId;
-     try{
-      const user = await this.taskwalkerService.findTaskWalker(userId);
-      if (user) {
-        // User is already a TaskWalker, return 409 Conflict
-        return res.status(HttpStatus.CONFLICT).json({
-            message: "You are already a TaskWalker"
-        });
-    }
-        const taskwalker = await this.taskwalkerService.registerTaskWalker(userId, taskWalkerDto);
-        if(taskwalker){
-            dispatcher.DispatchSuccessMessage(res, "You've sucessfully registered as a Taskwalker")
+    async registerTaskWalker(@Req() req, @Res() res, @Body() taskWalkerDto: TaskWalkerDto) {
+        const userId = req.user.id;
+        taskWalkerDto.userId = userId;
+    
+        try {
+            const user = await this.taskwalkerService.findTaskWalker(userId);
+            if (user) {
+                return res.status(HttpStatus.CONFLICT).json({
+                    message: "You are already a TaskWalker"
+                });
+            }
+    
+            const taskwalker = await this.taskwalkerService.registerTaskWalker(userId, taskWalkerDto);
+            return res.status(HttpStatus.OK).json({
+                message: "You have successfully been registered as a TaskWalker",
+                taskwalker
+            });
+    
+        } catch (err) {
+            if (err instanceof NotFoundException || err instanceof UnauthorizedException) {
+                return res.status(HttpStatus.UNAUTHORIZED).json({ message: err.message });
+            }
+    
+            console.error("Unexpected error during registration:", err);
+            return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                message: 'An unexpected error occurred during registration.'
+            });
         }
-     }catch(err){
-        if (
-            err instanceof NotFoundException ||
-            err instanceof UnauthorizedException
-          ) {
-            throw err;
-          }
-          throw new InternalServerErrorException(
-            'An unexpected error occurred during registration.',
-          );
-     }
     }
+    
 }
