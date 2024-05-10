@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { Body, Controller, Post, HttpException, HttpStatus, UnauthorizedException, Get, NotFoundException } from '@nestjs/common';
+import { Body, Controller, Post, HttpException, HttpStatus, UnauthorizedException, Get, NotFoundException, Res } from '@nestjs/common';
 import { WaitlistDto } from './dto/waitlist.dto';
 import { WaitlistService } from './waitlist.service';
 import { v4 as uuidv4 } from "uuid";
@@ -9,7 +9,7 @@ export class WaitlistController {
   constructor(private readonly waitlistService: WaitlistService) {}
 
   @Post('/') // POST request to add to the waitlist
-  async addWaitlist(@Body() waitlistDto: WaitlistDto) {
+  async addWaitlist(@Res() res, @Body() waitlistDto: WaitlistDto) {
     let uuid: string;
       let existingRecord;
 
@@ -31,7 +31,8 @@ export class WaitlistController {
       return {
         message: 'Waitlist added successfully',
         referralCode: waitlist.referral_code,
-      }; // Return a response object
+      };
+      res.redirect("https://walcr.com")
     } catch (err) {
         if (
             err instanceof UnauthorizedException
