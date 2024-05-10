@@ -41,24 +41,3 @@ export async function sendOTp(phone_number: string) {
     console.log(response.body, error);
   });
 }
-
-export function getsender(){
-const data = {"api_key":"TLwEnRho8z70m1G3AIFUUbUmWHFSZTQfM9GihtZ4y1JYEHWYTFJaTo9TPiFUmf",
-          "sender_id": "Walcr",
-          "usecase": "Your OTP code is zxsds",
-          "company": "Walcdr Corp"};
-
-const options = {
-'method': 'POST',
-'url': 'https://api.ng.termii.com/api/sender-id/request',
-'headers': {
-  'Content-Type': ['application/json', 'application/json']
-},
-body: JSON.stringify(data)
-
-};
-request(options, function (error, response) { 
-if (error) throw new Error(error);
-console.log(response.body);
-});
-}

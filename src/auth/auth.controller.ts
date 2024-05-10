@@ -18,7 +18,6 @@ import { AuthService } from './auth.service';
 import { signUpDto } from './dto/signup.dto';
 import { signInDto } from './dto/signin.dto';
 import { signInDtoWithNumber } from './dto/signin.dto';
-import { getsender } from 'src/utils/functions';
 import { comparePasswords, hashPassword } from 'src/utils/functions';
 import { JwtService } from '@nestjs/jwt';
 import { sendOTp } from 'src/utils/functions';
@@ -40,7 +39,6 @@ export class AuthController {
       } else {
         signUpDto.password = await hashPassword(signUpDto.password);
       }
-      getsender();
       await sendOTp(signUpDto.phone_number);
       const user = await this.authService.registerUser(signUpDto);
       const token = this.jwtService.sign({ id: user._id });
@@ -158,17 +156,14 @@ export class AuthController {
 
   @Get('user')
   @UseGuards(AuthGuard())
-  async getUser(@Req() req){
+  async getUser(@Req() req, @Res() res,){
   const userId = req.user.id;
   try{
   const user = await this.authService.getUser(userId);
   if(!user){
     throw new NotFoundException('User not found');
   }
-  return ({
-    message:"User data fetched sucessfully",
-    data:user
-  })
+dispatcher.DispatchSuccessMessage(res, "User data fetched sucessfuly", user)
   
 }catch (err: any) {
   if (
