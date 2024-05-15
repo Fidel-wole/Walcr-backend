@@ -35,7 +35,7 @@ export class WalletController {
 
     try {
       const card = await this.walletService.addCard(cardDto);
-      await this.walletService.createPaymentMethod(userId, cardDto.paymentMethodId);
+      //await this.walletService.createPaymentMethod(userId, cardDto.paymentMethodId);
       dispatcher.DispatchSuccessMessage(res, 'Card added sucessfully', card);
     } catch (err) {
       console.log(err);
