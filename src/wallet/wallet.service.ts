@@ -99,22 +99,30 @@ export class WalletService {
 
   async addCard(userId: any, cardData: any) {
     try {
-        const user = await this.userModel.findById(userId);
+      const user = await this.userModel.findById(userId);
 
-        if (!user) {
-            throw new Error('User not found');
-        }
+      if (!user) {
+        throw new Error('User not found');
+      }
 
-        user.cards.push(cardData);
+      user.cards.push(cardData);
 
-        const updatedUser = await user.save();
-        return updatedUser;
+      const updatedUser = await user.save();
+      return updatedUser;
     } catch (error) {
-        // Better to log the error for debugging purposes
-        console.error('Error adding card:', error);
-        // Rethrow the error to propagate it to the caller
-        throw error;
+      // Better to log the error for debugging purposes
+      console.error('Error adding card:', error);
+      // Rethrow the error to propagate it to the caller
+      throw error;
     }
-}
+  }
 
+  async getCards(userId) {
+    try {
+      const card = await this.userModel.findById(userId);
+      return card.cards;
+    } catch (err) {
+      throw err;
+    }
+  }
 }
