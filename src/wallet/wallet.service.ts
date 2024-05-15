@@ -19,40 +19,50 @@ export class WalletService {
     private paymentMethodModel: Model<PaymentMethod>,
   ) {}
 
-  // This method creates a new wallet document for a user
   async createWallet(userId: string): Promise<Wallet> {
-    const wallet = new this.walletModel({ userId });
-    return wallet.save(); // This operation is asynchronous and may not release resources immediately
+    try {
+      const wallet = new this.walletModel({ userId });
+      return await wallet.save();
+    } catch (error) {
+      console.error('Error creating wallet:', error);
+      throw error;
+    }
   }
 
-  // This method retrieves the balance for a user
   async getUserBalance(userId: string) {
-    const wallet = await this.walletModel.findOne({ userId });
-    return wallet ? wallet.balance : 0; // Potential memory leak if 'wallet' object is large
+    try {
+      const wallet = await this.walletModel.findOne({ userId });
+      return wallet ? wallet.balance : 0;
+    } catch (error) {
+      console.error('Error getting user balance:', error);
+      throw error;
+    }
   }
 
-  // This method creates a payment method with Stripe
   async createPaymentMethod(
     userId: string,
     cardToken: string,
   ): Promise<Stripe.PaymentMethod> {
-    const paymentMethod = await this.stripe.paymentMethods.create({
-      type: 'card',
-      card: {
-        token: cardToken,
-      },
-    });
+    try {
+      const paymentMethod = await this.stripe.paymentMethods.create({
+        type: 'card',
+        card: {
+          token: cardToken,
+        },
+      });
 
-    await this.paymentMethodModel.create({
-      // Potential memory leak if 'paymentMethod' object is large
-      userId: userId,
-      paymentMethodId: paymentMethod.id,
-    });
+      await this.paymentMethodModel.create({
+        userId: userId,
+        paymentMethodId: paymentMethod.id,
+      });
 
-    return paymentMethod;
+      return paymentMethod;
+    } catch (error) {
+      console.error('Error creating payment method:', error);
+      throw error;
+    }
   }
 
-  // This method adds a card to a user's account
   async addCard(cardData: any) {
     try {
       const user = await this.cardModel.create(cardData);
@@ -69,27 +79,26 @@ export class WalletService {
     }
   }
 
-  // This method retrieves all cards for a user
   async getCards(userId) {
     try {
       const card = await this.cardModel.findById(userId);
-      return card; // Potential memory leak if 'card' object is large
-    } catch (err) {
-      throw err;
+      return card;
+    } catch (error) {
+      console.error('Error getting cards:', error);
+      throw error;
     }
   }
 
-  // This method initiates a deposit for a user
   async deposit(userId: string, amount: number): Promise<boolean> {
-    const paymentMethod = await this.paymentMethodModel.findOne({
-      userId: userId,
-    });
-
-    if (!paymentMethod) {
-      throw new Error('Payment method not found');
-    }
-
     try {
+      const paymentMethod = await this.paymentMethodModel.findOne({
+        userId: userId,
+      });
+
+      if (!paymentMethod) {
+        throw new Error('Payment method not found');
+      }
+
       const paymentIntent = await this.stripe.paymentIntents.create({
         amount: amount * 100,
         currency: 'usd',
