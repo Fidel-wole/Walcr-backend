@@ -16,6 +16,9 @@ export class Card extends Document {
 
     @Prop({ required: true })
     exp_year: number;
+
+    @Prop({ required: true })
+    brand: string;
 }
 
 export const CardSchema = SchemaFactory.createForClass(Card);

@@ -2,9 +2,9 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 // eslint-disable-next-line prettier/prettier
-const port = process.env.PORT 
+const port = process.env.PORT || 3000
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  await app.listen(port || 3000);
+  await app.listen(port);
 }
 bootstrap();
