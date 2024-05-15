@@ -41,7 +41,7 @@ export class WaitlistController {
               message: 'Waitlist added successfully',
               referralCode: waitlist.referral_code,
           });
-  
+  res.redirect("https://walcr.com/welcome.")
       } catch (err) {
           console.error('Error adding to waitlist:', err);
   
