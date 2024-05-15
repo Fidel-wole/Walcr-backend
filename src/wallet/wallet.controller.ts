@@ -64,20 +64,4 @@ export class WalletController {
     }
   }
 
-  @Post('deposit')
-  async deposit(@Req() req, @Body() body: { amount: number }) {
-    const { amount } = body;
-    const userId = req.user.id
-    try {
-      const success = await this.walletService.deposit(userId, amount);
-      if (success) {
-        return { message: 'Deposit successful' };
-      } else {
-        return { error: 'Deposit failed', message: 'Failed to process the deposit' };
-      }
-    } catch (error) {
-      return { error: 'Failed to deposit', message: error.message };
-    }
-  }
-
 }
