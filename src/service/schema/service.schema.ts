@@ -19,8 +19,8 @@ export class Service {
   destination_address: string;
   @Prop({ required: true})
   delivery_ride: string;
-  @Prop({ required: true})
-  rider: string;
+  @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'TaskWalker'})
+  rider:string;
   @Prop({enum: ['In Transit', 'Delivered'], default:"In Transit"})
   status:string
 }

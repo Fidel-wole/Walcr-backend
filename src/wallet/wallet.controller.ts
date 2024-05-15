@@ -8,9 +8,13 @@ import {
   UseGuards,
   HttpException,
   HttpStatus,
+  Res,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { WalletService } from './wallet.service';
+import { card } from './dto/card.dto';
+import dispatcher from 'src/utils/dispatcher';
+import { hashPassword } from 'src/utils/functions';
 
 @Controller('wallet')
 export class WalletController {
@@ -77,5 +81,22 @@ export class WalletController {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+@UseGuards(AuthGuard())
+@Post('/add-card')
+  async addCard(@Req() req, @Res() res, @Body() cardDto:card){
+    const userId = req.user.id
+    
+try{
+  cardDto.cvv = await hashPassword(cardDto.cvv);
+   const card = await this.walletService.addCard(userId, cardDto);
+   dispatcher.DispatchSuccessMessage(res, "Card added sucessfully", card)
+}catch(err){
+  console.log(err)
+  throw new HttpException(
+    'Error updating card',
+    HttpStatus.INTERNAL_SERVER_ERROR,
+  );
+}
   }
 }

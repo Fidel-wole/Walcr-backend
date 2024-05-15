@@ -12,7 +12,7 @@ export class ServiceController {
   @Post('/book')
   @UseGuards(AuthGuard())
   async bookService(@Req() req, @Res() res, @Body() serviceDto: serviceDto) {
-    serviceDto.userId = req.user.id;
+    serviceDto.userId = req.user._id;
     try {
       const booking = await this.serviceService.bookService(serviceDto);
       if (booking) {
@@ -41,7 +41,7 @@ export class ServiceController {
   @Get('/bookings')
   @UseGuards(AuthGuard())
   async getBookedService(@Req() req, @Res() res){
-    const userId = req.user.id;
+    const userId = req.user._id;
     try{
         const bookings = await this.serviceService.getBookedService(userId)
         if(!bookings){

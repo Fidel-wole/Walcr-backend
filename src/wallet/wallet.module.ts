@@ -5,10 +5,10 @@ import { WalletController } from './wallet.controller';
 import { AuthModule } from 'src/auth/auth.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { WalletSchema } from './schema/wallet.schema';
-import { PaymentSchema } from './schema/paymentRefrence.schema';
+import { UserSchema } from 'src/auth/schema/user.schema';
 @Module({
   imports:[forwardRef(()=>AuthModule), MongooseModule.forFeature([{ name: 'Wallet', schema: WalletSchema },
-  { name: 'PaymentReference', schema: PaymentSchema },
+  { name: 'User', schema: UserSchema },
   ])],
   providers: [WalletService],
   controllers: [WalletController],

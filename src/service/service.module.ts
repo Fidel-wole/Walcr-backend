@@ -12,6 +12,6 @@ import { ServiceRideSchema } from './schema/service-ride.schema';
   { name: 'ServiceRide', schema: ServiceRideSchema },
   ])],
   providers: [ServiceService],
-  controllers: [ServiceController]
+  controllers: [ServiceController],
 })
 export class ServiceModule {}

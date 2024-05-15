@@ -10,9 +10,10 @@ import { JWT_SECRET } from '../config/env';
 import { JwtStrategy } from './jwt.strategy';
 import { GoogleStrategy } from './google.strategy';
 import { WalletModule } from 'src/wallet/wallet.module';
+import { CardSchema } from 'src/wallet/schema/card.schema';
 @Module({
   imports:[forwardRef(()=>WalletModule), PassportModule.register({ defaultStrategy: 'jwt' }),
-  MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
+  MongooseModule.forFeature([{ name: 'User', schema: UserSchema }, { name: 'Card', schema: CardSchema }]),
   JwtModule.register({
     global: true,
     secret: JWT_SECRET,

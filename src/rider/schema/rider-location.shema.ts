@@ -11,8 +11,8 @@ export class RiderLocation extends Document {
   @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'TaskWalker' })
   riderId: mongoose.Schema.Types.ObjectId;
 
-  @Prop({ enum: ['available', 'busy', 'offline'], default: 'offline' })
-  status: 'available' | 'busy' | 'offline';
+  @Prop({ enum: ['online', 'busy', 'offline'], default: 'offline' })
+  status: 'online' | 'busy' | 'offline';
 
   @Prop({
     type: {

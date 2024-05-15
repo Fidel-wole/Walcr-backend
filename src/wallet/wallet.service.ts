@@ -8,16 +8,15 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Wallet } from './schema/wallet.schema';
-import { PaymentSchema } from './schema/paymentRefrence.schema';
 import { STRIPE_SECRET_KEY } from 'src/config/env';
+import { User } from 'src/auth/schema/user.schema';
 const stripe = require('stripe')(STRIPE_SECRET_KEY);
 
 @Injectable()
 export class WalletService {
   constructor(
     @InjectModel('Wallet') private walletModel: Model<Wallet>,
-    @InjectModel('PaymentReference')
-    private paymentReferenceModel: Model<PaymentSchema>,
+    @InjectModel('User') private userModel: Model<User>,
   ) {}
 
   async createWallet(userId: string): Promise<Wallet> {
@@ -97,4 +96,25 @@ export class WalletService {
     }
     return await wallet.save();
   }
+
+  async addCard(userId: any, cardData: any) {
+    try {
+        const user = await this.userModel.findById(userId);
+
+        if (!user) {
+            throw new Error('User not found');
+        }
+
+        user.cards.push(cardData);
+
+        const updatedUser = await user.save();
+        return updatedUser;
+    } catch (error) {
+        // Better to log the error for debugging purposes
+        console.error('Error adding card:', error);
+        // Rethrow the error to propagate it to the caller
+        throw error;
+    }
+}
+
 }
