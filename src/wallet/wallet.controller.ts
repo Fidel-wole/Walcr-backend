@@ -9,6 +9,7 @@ import {
   HttpException,
   HttpStatus,
   Res,
+  NotFoundException,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { WalletService } from './wallet.service';
@@ -28,75 +29,57 @@ export class WalletController {
     return { message: 'Balance fetched successfully', data: balance };
   }
 
-  @Post('/create-deposit-intent')
   @UseGuards(AuthGuard())
+  @Post('/add-card')
+  async addCard(@Req() req, @Res() res, @Body() cardDto: card) {
+    const userId = req.user.id;
+
+    try {
+      cardDto.cvv = await hashPassword(cardDto.cvv);
+      const card = await this.walletService.addCard(userId, cardDto);
+      await this.walletService.createPaymentMethod(userId, cardDto.paymentMethodId);
+      dispatcher.DispatchSuccessMessage(res, 'Card added sucessfully', card);
+    } catch (err) {
+      console.log(err);
+      throw new HttpException(
+        'Error updating card',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+  @UseGuards(AuthGuard())
+  @Get('/get-card')
+  async getCards(@Req() req) {
+    const userId = req.user.id;
+    try {
+      const card = await this.walletService.getCards(userId);
+      if (!card) {
+        return new NotFoundException('No card found');
+      }
+      return card;
+    } catch (err) {
+      console.log(err);
+      throw new HttpException(
+        'Error updating card',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Post('deposit')
   async deposit(@Req() req, @Body() body: { amount: number }) {
     const { amount } = body;
-    try {
-      const paymentIntent =
-        await this.walletService.createPaymentIntent(amount);
-      if (paymentIntent) {
-        return { clientSecret: paymentIntent.client_secret };
-      } else {
-        throw new HttpException(
-          'Error creating payment intent',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
-    } catch (err) {
-      console.error('Error during deposit:', err);
-      throw new HttpException(
-        'An error occurred during deposit',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
-  @Post('/update-wallet')
-  @UseGuards(AuthGuard())
-  async updateWallet(@Req() req, @Body() body: { paymentIntentId: string }) {
-    try {
-      const { paymentIntentId } = body;
-      const userId = req.user._id;
-
-      // Verify the payment with Stripe or any payment service
-      const payment = await this.walletService.updateWallet(paymentIntentId);
-
-      if (payment && payment.status === 'succeeded') {
-        const amount = payment.amount; // amount in cents
-
-        // Update the user's wallet balance
-        await this.walletService.updateWalletBalance(userId, amount);
-        return { message: 'Wallet updated successfully' };
-      } else {
-        throw new HttpException(
-          'Payment not successful',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-    } catch (err) {
-      console.error('Error updating wallet:', err);
-      throw new HttpException(
-        'Error updating wallet',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-@UseGuards(AuthGuard())
-@Post('/add-card')
-  async addCard(@Req() req, @Res() res, @Body() cardDto:card){
     const userId = req.user.id
-    
-try{
-  cardDto.cvv = await hashPassword(cardDto.cvv);
-   const card = await this.walletService.addCard(userId, cardDto);
-   dispatcher.DispatchSuccessMessage(res, "Card added sucessfully", card)
-}catch(err){
-  console.log(err)
-  throw new HttpException(
-    'Error updating card',
-    HttpStatus.INTERNAL_SERVER_ERROR,
-  );
-}
+    try {
+      const success = await this.walletService.deposit(userId, amount);
+      if (success) {
+        return { message: 'Deposit successful' };
+      } else {
+        return { error: 'Deposit failed', message: 'Failed to process the deposit' };
+      }
+    } catch (error) {
+      return { error: 'Failed to deposit', message: error.message };
+    }
   }
+
 }

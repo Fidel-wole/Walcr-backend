@@ -4,5 +4,5 @@ export class card{
     card_number:number;
     card_expiry_date:Date;
     cvv:string;
-    token:string
+    paymentMethodId:string
 }

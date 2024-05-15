@@ -16,9 +16,6 @@ export class Card extends Document {
 
     @Prop({ required: true })
     cvv: string;
-
-    @Prop({ required: true })
-    token: string;
 }
 
 export const CardSchema = SchemaFactory.createForClass(Card);

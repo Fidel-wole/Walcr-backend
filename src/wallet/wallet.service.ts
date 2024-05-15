@@ -1,22 +1,21 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable prettier/prettier */
-import {
-  Injectable,
-  BadRequestException,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Wallet } from './schema/wallet.schema';
 import { STRIPE_SECRET_KEY } from 'src/config/env';
 import { User } from 'src/auth/schema/user.schema';
-const stripe = require('stripe')(STRIPE_SECRET_KEY);
+import { PaymentMethod } from './schema/paymentMethod.schema';
+import Stripe from 'stripe';
 
 @Injectable()
 export class WalletService {
+  private stripe = new Stripe(STRIPE_SECRET_KEY);
+
   constructor(
     @InjectModel('Wallet') private walletModel: Model<Wallet>,
     @InjectModel('User') private userModel: Model<User>,
+    @InjectModel('PaymentMethod') private paymentMethodModel: Model<PaymentMethod>,
   ) {}
 
   async createWallet(userId: string): Promise<Wallet> {
@@ -29,73 +28,23 @@ export class WalletService {
     return wallet ? wallet.balance : 0;
   }
 
-  async createPaymentIntent(amount: number) {
-    try {
-      if (typeof amount !== 'number' || amount <= 0) {
-        throw new BadRequestException('Invalid amount');
-      }
+  async createPaymentMethod(userId: string, cardToken: string): Promise<Stripe.PaymentMethod> {
+    const paymentMethod = await this.stripe.paymentMethods.create({
+      type: 'card',
+      card: {
+        token: cardToken,
+      },
+    });
 
-      // Initialize transaction with Paystack
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: amount * 100, // Amount in cents
-        currency: 'usd',
-        payment_method_types: ['card'],
-      });
+    // Save payment method to database
+    await this.paymentMethodModel.create({
+      customerId: userId,
+      paymentMethodId: paymentMethod.id,
+    });
 
-      return paymentIntent;
-    } catch (error) {
-      console.error('Error in deposit:', error); // Proper logging
-      if (
-        error instanceof BadRequestException ||
-        error instanceof InternalServerErrorException
-      ) {
-        throw error; // Forward the specific exception
-      }
-
-      throw new InternalServerErrorException(
-        'An error occurred during payment processing',
-      );
-    }
+    return paymentMethod;
   }
 
-  async updateWallet(paymentIntentId) {
-    try {
-      if (!paymentIntentId) {
-        throw new BadRequestException('PaymentIntent ID is required');
-      }
-
-      const paymentIntent =
-        await stripe.paymentIntents.retrieve(paymentIntentId);
-
-      if (!paymentIntent) {
-        throw new InternalServerErrorException('Payment Intent not found');
-      }
-
-      // Ensure the PaymentIntent status is "succeeded"
-      if (paymentIntent.status !== 'succeeded') {
-        throw new BadRequestException('Payment not successful');
-      }
-
-      return paymentIntent;
-    } catch (error) {
-      if (error.type === 'StripeInvalidRequestError') {
-        throw new BadRequestException('Invalid PaymentIntent ID');
-      }
-
-      console.error('Error in updateWallet:', error);
-      throw new InternalServerErrorException(
-        'An error occurred during payment processing',
-      );
-    }
-  }
-
-  async updateWalletBalance(userId, amount) {
-    let wallet = await this.walletModel.findById({ userId: userId });
-    if (wallet) {
-      wallet.balance += amount;
-    }
-    return await wallet.save();
-  }
 
   async addCard(userId: any, cardData: any) {
     try {
@@ -123,6 +72,36 @@ export class WalletService {
       return card.cards;
     } catch (err) {
       throw err;
+    }
+  }
+
+  async deposit(userId: string, amount: number): Promise<boolean> {
+    // Retrieve user's payment method from database
+    const paymentMethod = await this.paymentMethodModel.findOne({ userId: userId });
+
+    if (!paymentMethod) {
+      throw new Error('Payment method not found');
+    }
+
+    try {
+      // Initiate the payment using Stripe
+      const paymentIntent = await this.stripe.paymentIntents.create({
+        amount: amount * 100, // Convert amount to cents
+        currency: 'usd', // Adjust currency as needed
+        payment_method: paymentMethod.paymentMethodId,
+        confirm: true,
+      });
+
+      // If payment succeeded, update user's wallet balance
+      if (paymentIntent.status === 'succeeded') {
+        await this.walletModel.updateOne({ userId }, { $inc: { balance: amount } });
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      console.error('Error depositing:', error);
+      return false;
     }
   }
 }
