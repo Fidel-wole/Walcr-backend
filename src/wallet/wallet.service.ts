@@ -89,35 +89,5 @@ export class WalletService {
     }
   }
 
-  async deposit(userId: string, amount: number): Promise<boolean> {
-    try {
-      const paymentMethod = await this.paymentMethodModel.findOne({
-        userId: userId,
-      });
-
-      if (!paymentMethod) {
-        throw new Error('Payment method not found');
-      }
-
-      const paymentIntent = await this.stripe.paymentIntents.create({
-        amount: amount * 100,
-        currency: 'usd',
-        payment_method: paymentMethod.paymentMethodId,
-        confirm: true,
-      });
-
-      if (paymentIntent.status === 'succeeded') {
-        await this.walletModel.updateOne(
-          { userId },
-          { $inc: { balance: amount } },
-        );
-        return true;
-      } else {
-        return false;
-      }
-    } catch (error) {
-      console.error('Error depositing:', error);
-      return false;
-    }
-  }
+  
 }
