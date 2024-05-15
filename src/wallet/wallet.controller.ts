@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { WalletService } from './wallet.service';
-import { card } from './dto/card.dto';
+import { CardData } from './dto/card.dto';
 import dispatcher from 'src/utils/dispatcher';
 
 @Controller('wallet')
@@ -30,11 +30,11 @@ export class WalletController {
 
   @UseGuards(AuthGuard())
   @Post('/add-card')
-  async addCard(@Req() req, @Res() res, @Body() cardDto: card) {
+  async addCard(@Req() req, @Res() res, @Body() cardDto: CardData) {
     const userId = req.user.id;
 
     try {
-      const card = await this.walletService.addCard(userId, cardDto);
+      const card = await this.walletService.addCard(cardDto);
       await this.walletService.createPaymentMethod(userId, cardDto.paymentMethodId);
       dispatcher.DispatchSuccessMessage(res, 'Card added sucessfully', card);
     } catch (err) {

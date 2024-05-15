@@ -3,10 +3,10 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Wallet } from './schema/wallet.schema';
 import { STRIPE_SECRET_KEY } from 'src/config/env';
-import { User } from 'src/auth/schema/user.schema';
 import { PaymentMethod } from './schema/paymentMethod.schema';
 import Stripe from 'stripe';
 import { Injectable } from '@nestjs/common';
+import { Card } from './schema/card.schema';
 
 @Injectable()
 export class WalletService {
@@ -14,8 +14,9 @@ export class WalletService {
 
   constructor(
     @InjectModel('Wallet') private walletModel: Model<Wallet>,
-    @InjectModel('User') private userModel: Model<User>,
-    @InjectModel('PaymentMethod') private paymentMethodModel: Model<PaymentMethod>,
+    @InjectModel('Card') private cardModel: Model<Card>,
+    @InjectModel('PaymentMethod')
+    private paymentMethodModel: Model<PaymentMethod>,
   ) {}
 
   // This method creates a new wallet document for a user
@@ -31,7 +32,10 @@ export class WalletService {
   }
 
   // This method creates a payment method with Stripe
-  async createPaymentMethod(userId: string, cardToken: string): Promise<Stripe.PaymentMethod> {
+  async createPaymentMethod(
+    userId: string,
+    cardToken: string,
+  ): Promise<Stripe.PaymentMethod> {
     const paymentMethod = await this.stripe.paymentMethods.create({
       type: 'card',
       card: {
@@ -39,7 +43,8 @@ export class WalletService {
       },
     });
 
-    await this.paymentMethodModel.create({ // Potential memory leak if 'paymentMethod' object is large
+    await this.paymentMethodModel.create({
+      // Potential memory leak if 'paymentMethod' object is large
       userId: userId,
       paymentMethodId: paymentMethod.id,
     });
@@ -48,17 +53,15 @@ export class WalletService {
   }
 
   // This method adds a card to a user's account
-  async addCard(userId: any, cardData: any) {
+  async addCard(cardData: any) {
     try {
-      const user = await this.userModel.findById(userId);
+      const user = await this.cardModel.create(cardData);
 
       if (!user) {
         throw new Error('User not found');
       }
 
-      user.cards.push(cardData); // Potential memory leak if 'cardData' is large
-
-      const updatedUser = await user.save(); // Potential memory leak if 'updatedUser' object is large
+      const updatedUser = await user.save();
       return updatedUser;
     } catch (error) {
       console.error('Error adding card:', error);
@@ -69,8 +72,8 @@ export class WalletService {
   // This method retrieves all cards for a user
   async getCards(userId) {
     try {
-      const card = await this.userModel.findById(userId);
-      return card.cards; // Potential memory leak if 'card' object is large
+      const card = await this.cardModel.findById(userId);
+      return card; // Potential memory leak if 'card' object is large
     } catch (err) {
       throw err;
     }
@@ -78,7 +81,9 @@ export class WalletService {
 
   // This method initiates a deposit for a user
   async deposit(userId: string, amount: number): Promise<boolean> {
-    const paymentMethod = await this.paymentMethodModel.findOne({ userId: userId });
+    const paymentMethod = await this.paymentMethodModel.findOne({
+      userId: userId,
+    });
 
     if (!paymentMethod) {
       throw new Error('Payment method not found');
@@ -93,7 +98,10 @@ export class WalletService {
       });
 
       if (paymentIntent.status === 'succeeded') {
-        await this.walletModel.updateOne({ userId }, { $inc: { balance: amount } });
+        await this.walletModel.updateOne(
+          { userId },
+          { $inc: { balance: amount } },
+        );
         return true;
       } else {
         return false;
