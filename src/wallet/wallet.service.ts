@@ -38,7 +38,7 @@ export class WalletService {
 
     // Save payment method to database
     await this.paymentMethodModel.create({
-      customerId: userId,
+      userId: userId,
       paymentMethodId: paymentMethod.id,
     });
 

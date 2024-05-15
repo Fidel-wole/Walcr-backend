@@ -12,10 +12,10 @@ export class Card extends Document {
     card_number: number;
 
     @Prop({ required: true })
-    card_expiry_date: Date;
+    exp_month: number;
 
     @Prop({ required: true })
-    cvv: string;
+    exp_year: number;
 }
 
 export const CardSchema = SchemaFactory.createForClass(Card);

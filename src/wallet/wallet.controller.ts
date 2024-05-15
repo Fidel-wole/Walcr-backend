@@ -15,7 +15,6 @@ import { AuthGuard } from '@nestjs/passport';
 import { WalletService } from './wallet.service';
 import { card } from './dto/card.dto';
 import dispatcher from 'src/utils/dispatcher';
-import { hashPassword } from 'src/utils/functions';
 
 @Controller('wallet')
 export class WalletController {
@@ -35,7 +34,6 @@ export class WalletController {
     const userId = req.user.id;
 
     try {
-      cardDto.cvv = await hashPassword(cardDto.cvv);
       const card = await this.walletService.addCard(userId, cardDto);
       await this.walletService.createPaymentMethod(userId, cardDto.paymentMethodId);
       dispatcher.DispatchSuccessMessage(res, 'Card added sucessfully', card);
